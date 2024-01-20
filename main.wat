@@ -22,6 +22,7 @@
 (global $BALL_SPEED i32 (i32.const 1))
 (global $MIN_PADDLE i32 (i32.const 6))
 (global $MAX_PADDLE i32 (i32.const 124))
+(global $SCORE_TO_WIN i32 (i32.const 0x39))
 
 (global $P1_SCORE_TEXT i32 (i32.const 0x2000))
 (global $P2_SCORE_TEXT i32 (i32.const 0x2002))
@@ -116,18 +117,26 @@
   )
 
   ;; Update p1 score
-  (if (i32.and (i32.ge_s (local.get $ball_x) (i32.const 156)) (i32.le_u (local.get $p1_score) (i32.const 0x3a)))
+  (if (i32.ge_s (local.get $ball_x) (i32.const 156))
     (then
-      (local.set $p1_score (i32.add (i32.const 1) (local.get $p1_score)))
+      (if (i32.lt_u (local.get $p1_score) (global.get $SCORE_TO_WIN))
+        (then
+          (local.set $p1_score (i32.add (i32.const 1) (local.get $p1_score)))
+        )
+      )
       (local.set $ball_x (i32.const 136))
       (local.set $scored (i32.const 1))
     )
   )
 
   ;; Update p2 score
-  (if (i32.and (i32.le_s (local.get $ball_x) (i32.const 0)) (i32.le_u (local.get $p2_score) (i32.const 0x3a)))
+  (if (i32.le_s (local.get $ball_x) (i32.const 0))
     (then
-      (local.set $p2_score (i32.add (i32.const 1) (local.get $p2_score)))
+      (if (i32.lt_u (local.get $p2_score) (global.get $SCORE_TO_WIN))
+        (then
+          (local.set $p2_score (i32.add (i32.const 1) (local.get $p2_score)))
+        )
+      )
       (local.set $ball_x (i32.const 20))
       (local.set $scored (i32.const 1))
     )
@@ -136,13 +145,13 @@
   ;; Check for winner
   (if (i32.eq (local.get $winner) (i32.const 0x30))
     (then
-      (if (i32.eq (local.get $p1_score) (i32.const 0x3a))
+      (if (i32.eq (local.get $p1_score) (global.get $SCORE_TO_WIN))
         (then
           (local.set $winner (i32.const 0x31))
         )
       )
 
-      (if (i32.eq (local.get $p2_score) (i32.const 0x3a))
+      (if (i32.eq (local.get $p2_score) (global.get $SCORE_TO_WIN))
         (then
           (local.set $winner (i32.const 0x32))
         )
