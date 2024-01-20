@@ -133,15 +133,16 @@
     )
   )
 
+  ;; Check for winner
   (if (i32.eq (local.get $winner) (i32.const 0x30))
     (then
-      (if (i32.eq (local.get $p1_score) (i32.const 0x31))
+      (if (i32.eq (local.get $p1_score) (i32.const 0x3a))
         (then
           (local.set $winner (i32.const 0x31))
         )
       )
 
-      (if (i32.eq (local.get $p2_score) (i32.const 0x31))
+      (if (i32.eq (local.get $p2_score) (i32.const 0x3a))
         (then
           (local.set $winner (i32.const 0x32))
         )
