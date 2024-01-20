@@ -23,11 +23,14 @@
 (global $MIN_PADDLE i32 (i32.const 6))
 (global $MAX_PADDLE i32 (i32.const 124))
 
-(global $P1_SCORE i32 (i32.const 0x2000))
-(global $P2_SCORE i32 (i32.const 0x2002))
+(global $P1_SCORE_TEXT i32 (i32.const 0x2000))
+(global $P2_SCORE_TEXT i32 (i32.const 0x2002))
+(global $WINNER_TEXT i32 (i32.const 0x2004))
+(global $WINNER i32 (i32.const 0x200b))
 
 (data (i32.const 0x2000) "\30\00")
 (data (i32.const 0x2002) "\30\00")
+(data (i32.const 0x2004) "PLAYER 0 WINS!\00")
 
 (func (export "start")
   (i32.store (global.get $PALETTE0) (i32.const 0x000000))
@@ -44,21 +47,27 @@
   (local $gamepad2 i32)
   (local $player1 i32)
   (local $player2 i32)
+  (local $p1_score i32)
+  (local $p2_score i32)
   (local $direction_x i32)
   (local $ball_x i32)
   (local $ball_y i32)
   (local $ball_y_speed i32)
   (local $scored i32)
+  (local $winner i32)
 
   ;; Load locals from memory
   (local.set $gamepad1 (i32.load8_u (global.get $GAMEPAD1)))
   (local.set $gamepad2 (i32.load8_u (global.get $GAMEPAD2)))
   (local.set $player1 (i32.load8_u (global.get $PLAYER1)))
   (local.set $player2 (i32.load8_u (global.get $PLAYER2)))
+  (local.set $p1_score (i32.load8_u (global.get $P1_SCORE_TEXT)))
+  (local.set $p2_score (i32.load8_u (global.get $P2_SCORE_TEXT)))
   (local.set $ball_x (i32.load8_u (global.get $BALL_X)))
   (local.set $ball_y (i32.load8_u (global.get $BALL_Y)))
   (local.set $direction_x (i32.load8_s (global.get $DIRECTION_X)))
   (local.set $ball_y_speed (i32.load8_s (global.get $BALL_Y_SPEED)))
+  (local.set $winner (i32.load8_u (global.get $WINNER)))
 
   ;; Paddle movement
   (local.set $player1 (call $move_down (local.get $gamepad1) (local.get $player1)))
@@ -109,7 +118,7 @@
   ;; Update p1 score
   (if (i32.ge_s (local.get $ball_x) (i32.const 156))
     (then
-      (i32.store8 (global.get $P1_SCORE) (i32.add (i32.const 1) (i32.load8_u (global.get $P1_SCORE))))
+      (local.set $p1_score (i32.add (i32.const 1) (local.get $p1_score)))
       (local.set $ball_x (i32.const 136))
       (local.set $scored (i32.const 1))
     )
@@ -118,9 +127,25 @@
   ;; Update p2 score
   (if (i32.le_s (local.get $ball_x) (i32.const 0))
     (then
-      (i32.store8 (global.get $P2_SCORE) (i32.add (i32.const 1) (i32.load8_u (global.get $P2_SCORE))))
+      (local.set $p2_score (i32.add (i32.const 1) (local.get $p2_score)))
       (local.set $ball_x (i32.const 20))
       (local.set $scored (i32.const 1))
+    )
+  )
+
+  (if (i32.eq (local.get $winner) (i32.const 0x30))
+    (then
+      (if (i32.eq (local.get $p1_score) (i32.const 0x31))
+        (then
+          (local.set $winner (i32.const 0x31))
+        )
+      )
+
+      (if (i32.eq (local.get $p2_score) (i32.const 0x31))
+        (then
+          (local.set $winner (i32.const 0x32))
+        )
+      )
     )
   )
 
@@ -143,6 +168,9 @@
   ;; Update memory for next frame
   (i32.store8 (global.get $PLAYER1) (local.get $player1))
   (i32.store8 (global.get $PLAYER2) (local.get $player2))
+  (i32.store8 (global.get $P1_SCORE_TEXT) (local.get $p1_score))
+  (i32.store8 (global.get $P2_SCORE_TEXT) (local.get $p2_score))
+  (i32.store8 (global.get $WINNER) (local.get $winner))
   (i32.store8 (global.get $BALL_X) (local.get $ball_x))
   (i32.store8 (global.get $BALL_Y) (local.get $ball_y))
   (i32.store8 (global.get $DIRECTION_X) (local.get $direction_x))
@@ -164,10 +192,17 @@
   (call $rect (i32.const 0) (i32.const 158) (i32.const 160) (i32.const 2))
 
   ;; P1 score
-  (call $text (i32.const 0x2000) (i32.const 69) (i32.const 5))
+  (call $text (global.get $P1_SCORE_TEXT) (i32.const 69) (i32.const 5))
 
   ;; P2 score
-  (call $text (i32.const 0x2002) (i32.const 84) (i32.const 5))
+  (call $text (global.get $P2_SCORE_TEXT) (i32.const 84) (i32.const 5))
+
+  ;; Print winner
+  (if (i32.ne (local.get $winner) (i32.const 0x30))
+    (then
+      (call $text (global.get $WINNER_TEXT) (i32.const 29) (i32.const 25))
+    )
+  )
 
   ;; Mid line
   (call $rect (i32.const 79) (i32.const 4) (i32.const 2) (i32.const 152))
