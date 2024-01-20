@@ -116,7 +116,7 @@
   )
 
   ;; Update p1 score
-  (if (i32.ge_s (local.get $ball_x) (i32.const 156))
+  (if (i32.and (i32.ge_s (local.get $ball_x) (i32.const 156)) (i32.le_u (local.get $p1_score) (i32.const 0x3a)))
     (then
       (local.set $p1_score (i32.add (i32.const 1) (local.get $p1_score)))
       (local.set $ball_x (i32.const 136))
@@ -125,7 +125,7 @@
   )
 
   ;; Update p2 score
-  (if (i32.le_s (local.get $ball_x) (i32.const 0))
+  (if (i32.and (i32.le_s (local.get $ball_x) (i32.const 0)) (i32.le_u (local.get $p2_score) (i32.const 0x3a)))
     (then
       (local.set $p2_score (i32.add (i32.const 1) (local.get $p2_score)))
       (local.set $ball_x (i32.const 20))
